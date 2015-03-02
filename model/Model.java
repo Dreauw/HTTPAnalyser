@@ -21,7 +21,6 @@ public class Model extends Observable {
 			this.setChanged();
 			this.notifyObservers(new ModelMessage(ModelMessage.TYPE.ERROR, e.getMessage()));
 		}
-		
 		networkDevice.setSelectedDevice(2);
 	}
 	
@@ -39,6 +38,7 @@ public class Model extends Observable {
 	 * @return An PcapIf object representing the network device
 	 */
 	public PcapIf getSelectedDevice() {
+		createNetworkDevice();
 		return networkDevice.getSelectedDevice();
 	}
 }

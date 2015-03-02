@@ -1,5 +1,7 @@
 package controler;
 
+import java.util.HashMap;
+
 import org.jnetpcap.Pcap;
 import org.jnetpcap.PcapIf;
 import org.jnetpcap.packet.AbstractMessageHeader.MessageType;
@@ -15,11 +17,13 @@ public class HTTPCapturer implements PcapPacketHandler<String> {
 	private Tcp tcp;
 	private Http http;
 	private Pcap pcap;
+	private HashMap<Integer, PcapPacket> requests;
 	
 	public HTTPCapturer(Model model) {
 		this.model = model;
 		this.tcp = new Tcp();  
         this.http = new Http();
+        this.requests = new HashMap<Integer, PcapPacket>();
 	}
 	
 	/**
@@ -61,9 +65,17 @@ public class HTTPCapturer implements PcapPacketHandler<String> {
 
 	@Override
 	public void nextPacket(PcapPacket packet, String arg1) {
-        if (packet.hasHeader(tcp) && packet.hasHeader(http)) {
-        	if (http.getMessageType() == MessageType.REQUEST)
-        		System.out.println(http.fieldValue(Http.Request.RequestUrl));
+        if (packet.hasHeader(tcp)) {
+        	PcapPacket associatedRequest = requests.get(tcp.destination());
+        	if (associatedRequest != null) {
+        		if (packet.hasHeader(http) && http.getMessageType() == MessageType.RESPONSE) {
+	        		associatedRequest.getHeader(http);
+	        		String url = http.fieldValue(Http.Request.RequestUrl);
+	        		System.out.println("Response of " + url);
+        		}
+        	} else if (packet.hasHeader(http) && http.getMessageType() == MessageType.REQUEST) {
+        		requests.put(tcp.source(), packet);
+        	}
         }
 		
 	}
