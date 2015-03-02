@@ -6,11 +6,15 @@ import java.util.Observable;
 public class Model extends Observable {
 	private NetworkDevice networkDevice;
 	
-	public Model() {
+	public Model() {}
+	
+	private void createNetworkDevice() {
+		if (networkDevice != null) return;
 		try {
 			networkDevice = new NetworkDevice();
 		} catch (Exception e) {
-			e.printStackTrace();
+			this.setChanged();
+			this.notifyObservers(new ModelMessage(ModelMessage.TYPE.ERROR, e.getMessage()));
 		}
 	}
 	
@@ -19,6 +23,7 @@ public class Model extends Observable {
 	 * @return A list with the names
 	 */
 	public List<String> getDevicesName() {
+		createNetworkDevice();
 		return networkDevice.getDevicesName();
 	}
 }
