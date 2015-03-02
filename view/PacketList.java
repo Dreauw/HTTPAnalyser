@@ -31,6 +31,8 @@ public class PacketList extends JScrollPane implements Observer {
 		
 		if (msg.getType() == ModelMessage.TYPE.PACKET_UPDATED) {
 			repaint();
+		} else if (msg.getType() == ModelMessage.TYPE.PACKET_CLEARED) {
+			//model.getHTTPPackets().clear();
 		}
 	}
 

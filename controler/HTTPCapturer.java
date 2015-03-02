@@ -110,4 +110,9 @@ public class HTTPCapturer extends SwingWorker<Void, HTTPMessage> implements Pcap
 		}
 			
 	}
+
+	public void clear() {
+		requests.clear();
+		model.clearPackets();
+	}
 }

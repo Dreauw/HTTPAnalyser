@@ -29,7 +29,7 @@ public class MainWindow extends JFrame implements Observer {
 	private Model model;
 	
 	private HTTPCapturer httpCapturer;
-	private JButton btnCapture;
+	private JButton btnCapture, btnClear;
 	
 	public MainWindow() {
 		super("HTTPAnalyser");
@@ -44,7 +44,7 @@ public class MainWindow extends JFrame implements Observer {
 		JPanel panel = new JPanel(new BorderLayout());
 		panel.setPreferredSize(new Dimension(WIDTH, HEIGHT));
 		
-		addCaptureButton(panel);
+		addCaptureButtons(panel);
 		panel.add(new PacketList(model), BorderLayout.CENTER);
 		
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -58,8 +58,9 @@ public class MainWindow extends JFrame implements Observer {
 	 * Add the button to control (start/stop) the capture of http packets
 	 * @param panel Panel to add the buttons on
 	 */
-	private void addCaptureButton(JPanel panel) {
+	private void addCaptureButtons(JPanel panel) {
 		btnCapture = new JButton("Start");
+		btnClear = new JButton("Clear");
 		
 		btnCapture.addActionListener(new ActionListener() {
 			
@@ -77,7 +78,18 @@ public class MainWindow extends JFrame implements Observer {
 			}
 		});
 		
-		panel.add(btnCapture, BorderLayout.NORTH);
+		btnClear.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				httpCapturer.clear();
+			}
+		});
+		
+		JPanel subPanel = new JPanel();
+		subPanel.add(btnCapture);
+		subPanel.add(btnClear);
+		panel.add(subPanel, BorderLayout.NORTH);
 	}
 
 	@Override

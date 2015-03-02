@@ -84,6 +84,16 @@ public class Model extends Observable {
 	}
 	
 	/**
+	 * Clear all the captured packets
+	 */
+	public void clearPackets() {
+		packets.clear();
+		
+		this.setChanged();
+		this.notifyObservers(new ModelMessage(ModelMessage.TYPE.PACKET_CLEARED));
+	}
+	
+	/**
 	 * Return a DefaultListModel with all the captured HTTPMessage
 	 */
 	public DefaultListModel getHTTPPackets() {
