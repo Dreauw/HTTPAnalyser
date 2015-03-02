@@ -6,7 +6,10 @@ package model;
 public class ModelMessage {
 	
 	public enum TYPE {
-		ERROR
+		ERROR,
+		CAPTURE_STATE_CHANGED,
+		PACKET_ADDED,
+		PACKET_CLEARED
 	}
 	
 	private TYPE type;

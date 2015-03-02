@@ -1,16 +1,21 @@
 package model;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
 
-import org.jnetpcap.Pcap;
 import org.jnetpcap.PcapIf;
+import org.jnetpcap.packet.PcapPacket;
+import org.jnetpcap.protocol.tcpip.Http;
 
 public class Model extends Observable {
 	private NetworkDevice networkDevice;
-	private Pcap pcap;
+	private boolean capturing;
+	private List<HTTPMessage> packets;
 	
 	public Model() {
+		capturing = false;
+		packets = new ArrayList<HTTPMessage>();
 	}
 	
 	private void createNetworkDevice() {
@@ -40,5 +45,31 @@ public class Model extends Observable {
 	public PcapIf getSelectedDevice() {
 		createNetworkDevice();
 		return networkDevice.getSelectedDevice();
+	}
+	
+	/**
+	 * Define the state of the capture of HTTP packets
+	 */
+	public void setInCapture(boolean inCapture) {
+		capturing = inCapture;
+		this.setChanged();
+		this.notifyObservers(new ModelMessage(ModelMessage.TYPE.CAPTURE_STATE_CHANGED));
+	}
+	
+	/**
+	 * Test if the capture of HTTP packets is in progress
+	 */
+	public boolean isInCapture() {
+		return capturing;
+	}
+	
+	/**
+	 * Add an http packet to the list
+	 */
+	public void addPacket(HTTPMessage httpMsg) {
+		packets.add(httpMsg);
+		
+		this.setChanged();
+		this.notifyObservers(new ModelMessage(ModelMessage.TYPE.PACKET_ADDED, httpMsg.toString()));
 	}
 }

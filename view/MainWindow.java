@@ -1,5 +1,6 @@
 package view;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -28,6 +29,7 @@ public class MainWindow extends JFrame implements Observer {
 	private Model model;
 	
 	private HTTPCapturer httpCapturer;
+	private JButton btnCapture;
 	
 	public MainWindow() {
 		super("HTTPAnalyser");
@@ -39,11 +41,11 @@ public class MainWindow extends JFrame implements Observer {
 		
 		httpCapturer = new HTTPCapturer(model);
 		
-		JPanel panel = new JPanel();
+		JPanel panel = new JPanel(new BorderLayout());
 		panel.setPreferredSize(new Dimension(WIDTH, HEIGHT));
 		
-		addCaptureButtons(panel);
-		
+		addCaptureButton(panel);
+		panel.add(new PacketList(model), BorderLayout.CENTER);
 		
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		this.setContentPane(panel);
@@ -53,44 +55,40 @@ public class MainWindow extends JFrame implements Observer {
 	}
 	
 	/**
-	 * Add two buttons to control (start/stop) the capture of http packets
+	 * Add the button to control (start/stop) the capture of http packets
 	 * @param panel Panel to add the buttons on
 	 */
-	private void addCaptureButtons(JPanel panel) {
-		JButton btnStartCapture = new JButton("Start capture");
-		JButton btnStopCapture = new JButton("Stop capture");
+	private void addCaptureButton(JPanel panel) {
+		btnCapture = new JButton("Start");
 		
-		btnStartCapture.addActionListener(new ActionListener() {
+		btnCapture.addActionListener(new ActionListener() {
 			
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				try {
-					httpCapturer.start(model.getSelectedDevice());
+					if (model.isInCapture()) {
+						httpCapturer.stop();
+					} else {
+						httpCapturer.start(model.getSelectedDevice());
+					}
 				} catch (Exception e) {
 					showErrorMessage(e.getMessage());
 				}
 			}
 		});
 		
-		btnStopCapture.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				httpCapturer.stop();
-			}
-		});
-		
-		panel.add(btnStartCapture);
-		panel.add(btnStopCapture);
+		panel.add(btnCapture, BorderLayout.NORTH);
 	}
 
 	@Override
 	public void update(Observable observable, Object obj) {
 		ModelMessage msg = (ModelMessage) obj;
-		
 		// Show error message
 		if (msg.getType() == ModelMessage.TYPE.ERROR) {
 			showErrorMessage((String) msg.getData());
+		} else if (msg.getType() == ModelMessage.TYPE.CAPTURE_STATE_CHANGED) {
+			// Update the state of the button to control the capture
+			btnCapture.setText(model.isInCapture() ? "Stop" : "Start");
 		}
 	}
 	

@@ -1,6 +1,9 @@
 package controler;
 
 import java.util.HashMap;
+import java.util.List;
+
+import javax.swing.SwingWorker;
 
 import org.jnetpcap.Pcap;
 import org.jnetpcap.PcapBpfProgram;
@@ -11,20 +14,21 @@ import org.jnetpcap.packet.PcapPacketHandler;
 import org.jnetpcap.protocol.tcpip.Http;
 import org.jnetpcap.protocol.tcpip.Tcp;
 
+import model.HTTPMessage;
 import model.Model;
 
-public class HTTPCapturer implements PcapPacketHandler<String> {
+public class HTTPCapturer extends SwingWorker<Void, HTTPMessage> implements PcapPacketHandler<String> {
 	private Model model;
 	private Tcp tcp;
 	private Http http;
 	private Pcap pcap;
-	private HashMap<Integer, PcapPacket> requests;
+	private HashMap<Integer, HTTPMessage> requests;
 	
 	public HTTPCapturer(Model model) {
 		this.model = model;
 		this.tcp = new Tcp();  
         this.http = new Http();
-        this.requests = new HashMap<Integer, PcapPacket>();
+        this.requests = new HashMap<Integer, HTTPMessage>();
 	}
 	
 	/**
@@ -51,15 +55,9 @@ public class HTTPCapturer implements PcapPacketHandler<String> {
         if (pcap.setFilter(filter) != Pcap.OK)
         	throw new Exception("Unable to set the filter (" + pcap.getErr() + ")");
         
-        new Thread(new Runnable() {
-			@Override
-			public void run() {
-				pcap.loop(Pcap.LOOP_INFINITE, HTTPCapturer.this, "");
-		        pcap.close();  
-		        pcap = null;
-			}
-		}).start();
+        model.setInCapture(true);
         
+        execute();
 	}
 	
 	/**
@@ -68,23 +66,43 @@ public class HTTPCapturer implements PcapPacketHandler<String> {
 	public void stop() {
 		if (pcap != null)
 			pcap.breakloop();
+		model.setInCapture(false);
 	}
 
 
 	@Override
 	public void nextPacket(PcapPacket packet, String arg1) {
         if (packet.hasHeader(tcp)) {
-        	PcapPacket associatedRequest = requests.get(tcp.destination());
+        	HTTPMessage associatedRequest = requests.get(tcp.destination());
         	if (associatedRequest != null) {
         		if (packet.hasHeader(http) && http.getMessageType() == MessageType.RESPONSE) {
-	        		associatedRequest.getHeader(http);
-	        		String url = http.fieldValue(Http.Request.RequestUrl);
-	        		System.out.println("Response of " + url);
+        			// Add the response to HTTPMessage
         		}
         	} else if (packet.hasHeader(http) && http.getMessageType() == MessageType.REQUEST) {
-        		requests.put(tcp.source(), packet);
+        		String host = http.fieldValue(Http.Request.Host);
+        		String url = http.fieldValue(Http.Request.RequestUrl);
+        		if (url == null) url = "/";
+        		
+        		HTTPMessage httpMsg = new HTTPMessage(host + url, packet);
+        		requests.put(tcp.source(), httpMsg);
+        		
+        		publish(httpMsg);
         	}
         }
-		
+	}
+
+	@Override
+	protected Void doInBackground() throws Exception {
+		pcap.loop(Pcap.LOOP_INFINITE, HTTPCapturer.this, "");
+        pcap.close();
+        model.setInCapture(false);
+        pcap = null;
+		return null;
+	}
+	
+	@Override
+	protected void process(List<HTTPMessage> list) {
+		for (HTTPMessage httpMsg : list)
+			model.addPacket(httpMsg);
 	}
 }
