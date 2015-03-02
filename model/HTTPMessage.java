@@ -12,11 +12,16 @@ public class HTTPMessage {
 	public HTTPMessage(String url, PcapPacket request) {
 		this.url = url;
 		this.request = request;
+		this.responses = new ArrayList<PcapPacket>();
+	}
+	
+	public void addResponse(PcapPacket packet) {
+		responses.add(packet);
 	}
 	
 	@Override
 	public String toString() {
-		return url;
+		return " (" + responses.size() + ") " + url;
 	}
 
 }

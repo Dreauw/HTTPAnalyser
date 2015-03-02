@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
 
+import javax.swing.DefaultListModel;
+
 import org.jnetpcap.PcapIf;
 import org.jnetpcap.packet.PcapPacket;
 import org.jnetpcap.protocol.tcpip.Http;
@@ -11,11 +13,11 @@ import org.jnetpcap.protocol.tcpip.Http;
 public class Model extends Observable {
 	private NetworkDevice networkDevice;
 	private boolean capturing;
-	private List<HTTPMessage> packets;
+	private DefaultListModel packets;
 	
 	public Model() {
 		capturing = false;
-		packets = new ArrayList<HTTPMessage>();
+		packets = new DefaultListModel();
 	}
 	
 	private void createNetworkDevice() {
@@ -67,9 +69,24 @@ public class Model extends Observable {
 	 * Add an http packet to the list
 	 */
 	public void addPacket(HTTPMessage httpMsg) {
-		packets.add(httpMsg);
+		packets.addElement(httpMsg);
 		
 		this.setChanged();
-		this.notifyObservers(new ModelMessage(ModelMessage.TYPE.PACKET_ADDED, httpMsg.toString()));
+		this.notifyObservers(new ModelMessage(ModelMessage.TYPE.PACKET_ADDED, httpMsg));
+	}
+	
+	/**
+	 * Update the packets
+	 */
+	public void updatePackets() {
+		this.setChanged();
+		this.notifyObservers(new ModelMessage(ModelMessage.TYPE.PACKET_UPDATED));
+	}
+	
+	/**
+	 * Return a DefaultListModel with all the captured HTTPMessage
+	 */
+	public DefaultListModel getHTTPPackets() {
+		return packets;
 	}
 }

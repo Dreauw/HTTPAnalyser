@@ -75,9 +75,8 @@ public class HTTPCapturer extends SwingWorker<Void, HTTPMessage> implements Pcap
         if (packet.hasHeader(tcp)) {
         	HTTPMessage associatedRequest = requests.get(tcp.destination());
         	if (associatedRequest != null) {
-        		if (packet.hasHeader(http) && http.getMessageType() == MessageType.RESPONSE) {
-        			// Add the response to HTTPMessage
-        		}
+        		associatedRequest.addResponse(packet);
+        		publish((HTTPMessage)null);
         	} else if (packet.hasHeader(http) && http.getMessageType() == MessageType.REQUEST) {
         		String host = http.fieldValue(Http.Request.Host);
         		String url = http.fieldValue(Http.Request.RequestUrl);
@@ -102,7 +101,13 @@ public class HTTPCapturer extends SwingWorker<Void, HTTPMessage> implements Pcap
 	
 	@Override
 	protected void process(List<HTTPMessage> list) {
-		for (HTTPMessage httpMsg : list)
-			model.addPacket(httpMsg);
+		for (HTTPMessage httpMsg : list) {
+			if (httpMsg == null) {
+				model.updatePackets();
+			} else {
+				model.addPacket(httpMsg);
+			}
+		}
+			
 	}
 }

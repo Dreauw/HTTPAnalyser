@@ -9,7 +9,8 @@ public class ModelMessage {
 		ERROR,
 		CAPTURE_STATE_CHANGED,
 		PACKET_ADDED,
-		PACKET_CLEARED
+		PACKET_CLEARED,
+		PACKET_UPDATED
 	}
 	
 	private TYPE type;

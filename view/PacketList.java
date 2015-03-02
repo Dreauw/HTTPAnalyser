@@ -14,15 +14,12 @@ public class PacketList extends JScrollPane implements Observer {
 	private static final long serialVersionUID = 1L;
 	
 	private JList list;
-	private DefaultListModel listModel;
 	
 	public PacketList(Model model) {
 		super();
 		model.addObserver(this);
 		
-		listModel = new DefaultListModel();
-		
-		list = new JList(listModel);
+		list = new JList(model.getHTTPPackets());
 		list.setLayoutOrientation(JList.VERTICAL);
 		
 		setViewportView(list);
@@ -32,10 +29,8 @@ public class PacketList extends JScrollPane implements Observer {
 	public void update(Observable observable, Object obj) {
 		ModelMessage msg = (ModelMessage) obj;
 		
-		if (msg.getType() == ModelMessage.TYPE.PACKET_ADDED) {
-			listModel.addElement(msg.getData());
-		} else if (msg.getType() == ModelMessage.TYPE.PACKET_CLEARED) {
-			listModel.clear();
+		if (msg.getType() == ModelMessage.TYPE.PACKET_UPDATED) {
+			repaint();
 		}
 	}
 
