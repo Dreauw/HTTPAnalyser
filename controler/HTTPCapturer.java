@@ -3,6 +3,7 @@ package controler;
 import java.util.HashMap;
 
 import org.jnetpcap.Pcap;
+import org.jnetpcap.PcapBpfProgram;
 import org.jnetpcap.PcapIf;
 import org.jnetpcap.packet.AbstractMessageHeader.MessageType;
 import org.jnetpcap.packet.PcapPacket;
@@ -36,12 +37,19 @@ public class HTTPCapturer implements PcapPacketHandler<String> {
         int flags = Pcap.MODE_PROMISCUOUS;
         int timeout = 10 * 1000;
         StringBuilder buff = new StringBuilder();
+        PcapBpfProgram filter = new PcapBpfProgram();
         
         pcap = Pcap.openLive(device.getName(), snaplen, flags, timeout, buff);
         
         if (pcap == null)
 			throw new Exception("Unable to start the http capture (" + buff + ")");
         
+        // Process only tcp packets on port 80 (HTTP)
+        if (pcap.compile(filter, "tcp port 80", 1, 0) != Pcap.OK)
+        	throw new Exception("Unable to compile the filter (" + pcap.getErr() + ")");
+        
+        if (pcap.setFilter(filter) != Pcap.OK)
+        	throw new Exception("Unable to set the filter (" + pcap.getErr() + ")");
         
         new Thread(new Runnable() {
 			@Override
