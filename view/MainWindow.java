@@ -1,12 +1,17 @@
 package view;
 
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Observable;
 import java.util.Observer;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+
+import controler.HTTPCapturer;
 
 import model.Model;
 import model.ModelMessage;
@@ -22,16 +27,22 @@ public class MainWindow extends JFrame implements Observer {
 	
 	private Model model;
 	
+	private HTTPCapturer httpCapturer;
+	
 	public MainWindow() {
 		super("HTTPAnalyser");
 		
 		model = new Model();
 		model.addObserver(this);
 		
+		httpCapturer = new HTTPCapturer(model);
+		
 		System.out.println(model.getDevicesName());
 		
 		JPanel panel = new JPanel();
 		panel.setPreferredSize(new Dimension(WIDTH, HEIGHT));
+		
+		addCaptureButtons(panel);
 		
 		
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -40,6 +51,38 @@ public class MainWindow extends JFrame implements Observer {
 		this.setLocationRelativeTo(null);
 		this.setVisible(true);
 	}
+	
+	/**
+	 * Add two buttons to control (start/stop) the capture of http packets
+	 * @param panel Panel to add the buttons on
+	 */
+	private void addCaptureButtons(JPanel panel) {
+		JButton btnStartCapture = new JButton("Start capture");
+		JButton btnStopCapture = new JButton("Stop capture");
+		
+		btnStartCapture.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				try {
+					httpCapturer.start(model.getSelectedDevice());
+				} catch (Exception e) {
+					showErrorMessage(e.getMessage());
+				}
+			}
+		});
+		
+		btnStopCapture.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				httpCapturer.stop();
+			}
+		});
+		
+		panel.add(btnStartCapture);
+		panel.add(btnStopCapture);
+	}
 
 	@Override
 	public void update(Observable observable, Object obj) {
@@ -47,8 +90,12 @@ public class MainWindow extends JFrame implements Observer {
 		
 		// Show error message
 		if (msg.getType() == ModelMessage.TYPE.ERROR) {
-			JOptionPane.showMessageDialog(this, msg.getData(), "Error", JOptionPane.ERROR_MESSAGE);
+			showErrorMessage((String) msg.getData());
 		}
+	}
+	
+	private void showErrorMessage(String msg) {
+		JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
 	}
 	
 	

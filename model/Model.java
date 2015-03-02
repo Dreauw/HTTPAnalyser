@@ -3,10 +3,15 @@ package model;
 import java.util.List;
 import java.util.Observable;
 
+import org.jnetpcap.Pcap;
+import org.jnetpcap.PcapIf;
+
 public class Model extends Observable {
 	private NetworkDevice networkDevice;
+	private Pcap pcap;
 	
-	public Model() {}
+	public Model() {
+	}
 	
 	private void createNetworkDevice() {
 		if (networkDevice != null) return;
@@ -16,6 +21,8 @@ public class Model extends Observable {
 			this.setChanged();
 			this.notifyObservers(new ModelMessage(ModelMessage.TYPE.ERROR, e.getMessage()));
 		}
+		
+		networkDevice.setSelectedDevice(2);
 	}
 	
 	/**
@@ -25,5 +32,13 @@ public class Model extends Observable {
 	public List<String> getDevicesName() {
 		createNetworkDevice();
 		return networkDevice.getDevicesName();
+	}
+	
+	/**
+	 * Get the selected device
+	 * @return An PcapIf object representing the network device
+	 */
+	public PcapIf getSelectedDevice() {
+		return networkDevice.getSelectedDevice();
 	}
 }
