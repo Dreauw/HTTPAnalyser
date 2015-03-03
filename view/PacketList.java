@@ -8,6 +8,7 @@ import java.awt.event.MouseListener;
 import java.util.Observable;
 import java.util.Observer;
 
+import javax.swing.JFileChooser;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -85,6 +86,16 @@ public class PacketList extends JScrollPane implements Observer {
 					p += packet.toString();
 
 				showText(p);
+			}
+		});
+		
+		saveResponse.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser fileChooser = new JFileChooser();
+				if (fileChooser.showSaveDialog(PacketList.this) == JFileChooser.APPROVE_OPTION) {
+					model.saveHTTPResponseContent(fileChooser.getSelectedFile(), getSelectedHTTPMessage());
+				}
 			}
 		});
 	}

@@ -1,5 +1,9 @@
 package model;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
@@ -100,5 +104,41 @@ public class Model extends Observable {
 	 */
 	public DefaultListModel getHTTPPackets() {
 		return packets;
+	}
+	
+	
+	/**
+	 * Write the content of an HTTP response inside of a file
+	 * @param file The file to write the content
+	 * @param message The HTTP message to save
+	 */
+	public void saveHTTPResponseContent(File file, HTTPMessage message) {
+		// First, we sort all the responses in the right order (based on the IP4 header's id)
+		message.sortResponses();
+		
+		FileOutputStream out = null;
+		try {
+			out = new FileOutputStream(file);
+			
+			// Loop trought all the responses
+			int size =  message.getResponses().size();
+			for (int i = 0; i < size; ++i) {
+				Payload payload = new Payload();
+				// Write the payload of the fragment (if there's one)
+				if (message.getResponses().get(i).getPacket().hasHeader(payload))
+					out.write(payload.getByteArray(0, payload.size()));
+			}
+		} catch (Exception e) {
+			this.setChanged();
+			this.notifyObservers(new ModelMessage(ModelMessage.TYPE.ERROR, e.getMessage()));
+		} finally {
+			try {
+				// Always close the file
+				if (out != null) out.close();
+			} catch (IOException e) {
+				this.setChanged();
+				this.notifyObservers(new ModelMessage(ModelMessage.TYPE.ERROR, e.getMessage()));
+			}
+		}
 	}
 }
