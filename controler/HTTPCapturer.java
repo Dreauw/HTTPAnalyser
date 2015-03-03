@@ -60,7 +60,7 @@ public class HTTPCapturer extends SwingWorker<Void, HTTPMessage> implements Pcap
         	throw new Exception("Unable to set the filter (" + pcap.getErr() + ")");
         
         model.setInCapture(true);
-        
+		
         execute();
 	}
 	

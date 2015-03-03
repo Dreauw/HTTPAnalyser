@@ -67,6 +67,7 @@ public class MainWindow extends JFrame implements Observer {
 				try {
 					if (model.isInCapture()) {
 						httpCapturer.stop();
+						httpCapturer = new HTTPCapturer(model);
 					} else {
 						httpCapturer.start(model.getSelectedDevice());
 					}
