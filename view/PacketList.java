@@ -75,6 +75,7 @@ public class PacketList extends JScrollPane implements Observer {
 		showHTTPRes.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				getSelectedHTTPMessage().sortResponses();
 				String p = "";
 				for (PcapPacket packet : getSelectedHTTPMessage().getResponses())
 					p += packet.toString();
