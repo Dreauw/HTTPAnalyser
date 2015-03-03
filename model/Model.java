@@ -15,6 +15,7 @@ import org.jnetpcap.nio.JBuffer;
 import org.jnetpcap.packet.Payload;
 import org.jnetpcap.packet.PcapPacket;
 import org.jnetpcap.protocol.tcpip.Http;
+import org.jnetpcap.protocol.tcpip.Tcp;
 
 public class Model extends Observable {
 	private NetworkDevice networkDevice;
@@ -116,6 +117,9 @@ public class Model extends Observable {
 		// First, we sort all the responses in the right order (based on the IP4 header's id)
 		message.sortResponses();
 		
+		Http http = new Http();
+		Tcp tcp = new Tcp();
+		
 		FileOutputStream out = null;
 		try {
 			out = new FileOutputStream(file);
@@ -123,10 +127,15 @@ public class Model extends Observable {
 			// Loop trought all the responses
 			int size =  message.getResponses().size();
 			for (int i = 0; i < size; ++i) {
-				Payload payload = new Payload();
+				PcapPacket packet = message.getResponses().get(i).getPacket();
 				// Write the payload of the fragment (if there's one)
-				if (message.getResponses().get(i).getPacket().hasHeader(payload))
-					out.write(payload.getByteArray(0, payload.size()));
+				if (packet.hasHeader(http)) {
+					// Remove the http header
+					out.write(http.getPayload());
+				} else if (packet.hasHeader(tcp)) {
+					// No http dg, so the payload is in the tcp dg
+					out.write(tcp.getPayload());
+				};
 			}
 		} catch (Exception e) {
 			this.setChanged();
