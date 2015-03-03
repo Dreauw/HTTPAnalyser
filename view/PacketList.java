@@ -1,5 +1,6 @@
 package view;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -9,8 +10,12 @@ import java.util.Observer;
 
 import javax.swing.JList;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+
+import org.jnetpcap.packet.PcapPacket;
 
 import model.HTTPMessage;
 import model.Model;
@@ -53,8 +58,8 @@ public class PacketList extends JScrollPane implements Observer {
 	 */
 	private void generatePopupMenu() {
 		popupMenu = new JPopupMenu();
-		popupMenu.add(showHTTPReq = new JMenuItem("Show HTTP Request..."));
-		popupMenu.add(showHTTPRes = new JMenuItem("Show HTTP Response..."));
+		popupMenu.add(showHTTPReq = new JMenuItem("Show request packet..."));
+		popupMenu.add(showHTTPRes = new JMenuItem("Show response packet(s)..."));
 		popupMenu.addSeparator();
 		popupMenu.add(saveResponse = new JMenuItem("Save HTTP Response Content..."));
 		popupMenu.add(downloadURL = new JMenuItem("Download the requested URL..."));
@@ -63,16 +68,29 @@ public class PacketList extends JScrollPane implements Observer {
 		showHTTPReq.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				System.out.println(getSelectedHTTPMessage().getRequest());
+				showText(getSelectedHTTPMessage().getRequest().toString());
 			}
 		});
 		
 		showHTTPRes.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				System.out.println(getSelectedHTTPMessage().getResponses().get(0));
+				String p = "";
+				for (PcapPacket packet : getSelectedHTTPMessage().getResponses())
+					p += packet.toString();
+
+				showText(p);
 			}
 		});
+	}
+	
+	private void showText(String text) {
+		JTextArea textArea = new JTextArea(text);
+		JScrollPane scrollPane = new JScrollPane(textArea);  
+		textArea.setLineWrap(true);  
+		textArea.setWrapStyleWord(true); 
+		scrollPane.setPreferredSize( new Dimension( 500, 500 ) );
+		JOptionPane.showMessageDialog(this, scrollPane, "Dialog", JOptionPane.PLAIN_MESSAGE);
 	}
 	
 	/**

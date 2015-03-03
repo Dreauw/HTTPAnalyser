@@ -37,8 +37,6 @@ public class MainWindow extends JFrame implements Observer {
 		model = new Model();
 		model.addObserver(this);
 		
-		System.out.println(model.getDevicesName());
-		
 		httpCapturer = new HTTPCapturer(model);
 		
 		JPanel panel = new JPanel(new BorderLayout());
