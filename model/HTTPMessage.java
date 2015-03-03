@@ -6,8 +6,6 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.jnetpcap.packet.PcapPacket;
-import org.jnetpcap.packet.structure.JField;
-import org.jnetpcap.protocol.network.Ip4;
 
 public class HTTPMessage {
 	private String url;
@@ -49,6 +47,21 @@ public class HTTPMessage {
 	@Override
 	public String toString() {
 		return " (" + responses.size() + ") " + url;
+	}
+	
+	/**
+	 * Return the resource name from the URL
+	 */
+	public String getResourceName() {
+		String name = url;
+		int s = name.lastIndexOf('/');
+		
+		if (s > 0) name = name.substring(s+1);
+		
+		s = name.indexOf('?');
+		if (s > 0) name = name.substring(0, s);
+		
+		return name;
 	}
 
 }

@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.File;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -93,6 +94,8 @@ public class PacketList extends JScrollPane implements Observer {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser fileChooser = new JFileChooser();
+				fileChooser.setSelectedFile(new File(getSelectedHTTPMessage().getResourceName()));
+				
 				if (fileChooser.showSaveDialog(PacketList.this) == JFileChooser.APPROVE_OPTION) {
 					model.saveHTTPResponseContent(fileChooser.getSelectedFile(), getSelectedHTTPMessage());
 				}
