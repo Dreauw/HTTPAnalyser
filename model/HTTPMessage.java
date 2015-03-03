@@ -12,19 +12,19 @@ import org.jnetpcap.protocol.network.Ip4;
 public class HTTPMessage {
 	private String url;
 	private PcapPacket request;
-	private List<PcapPacket> responses;
+	private List<IpPacket> responses;
 	
 	public HTTPMessage(String url, PcapPacket request) {
 		this.url = url;
 		this.request = request;
-		this.responses = new ArrayList<PcapPacket>();
+		this.responses = new ArrayList<IpPacket>();
 	}
 	
 	public PcapPacket getRequest() {
 		return request;
 	}
 	
-	public void addResponse(PcapPacket packet) {
+	public void addResponse(IpPacket packet) {
 		responses.add(packet);
 	}
 	
@@ -32,21 +32,17 @@ public class HTTPMessage {
 	 * Sort the fragmented packet representing the response in the right order
 	 */
 	public void sortResponses() {
-		Collections.sort(responses, new Comparator<PcapPacket>() {
+		Collections.sort(responses, new Comparator<IpPacket>() {
 
 			@Override
-			public int compare(PcapPacket p1, PcapPacket p2) {
-				Ip4 ip1 = new Ip4(), ip2 = new Ip4();
-				if (p1.hasHeader(ip1) && p2.hasHeader(ip2)) {
-					return ip1.id() - ip2.id();
-				}
-				return 0;
+			public int compare(IpPacket p1, IpPacket p2) {
+				return p1.getId() - p2.getId();
 			}
 			
 		});
 	}
 	
-	public List<PcapPacket> getResponses() {
+	public List<IpPacket> getResponses() {
 		return responses;
 	}
 	

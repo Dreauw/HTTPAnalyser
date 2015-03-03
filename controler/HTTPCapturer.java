@@ -11,10 +11,12 @@ import org.jnetpcap.PcapIf;
 import org.jnetpcap.packet.AbstractMessageHeader.MessageType;
 import org.jnetpcap.packet.PcapPacket;
 import org.jnetpcap.packet.PcapPacketHandler;
+import org.jnetpcap.protocol.network.Ip4;
 import org.jnetpcap.protocol.tcpip.Http;
 import org.jnetpcap.protocol.tcpip.Tcp;
 
 import model.HTTPMessage;
+import model.IpPacket;
 import model.Model;
 
 public class HTTPCapturer extends SwingWorker<Void, HTTPMessage> implements PcapPacketHandler<String> {
@@ -22,12 +24,14 @@ public class HTTPCapturer extends SwingWorker<Void, HTTPMessage> implements Pcap
 	private Tcp tcp;
 	private Http http;
 	private Pcap pcap;
+	private Ip4 ip4;
 	private HashMap<Integer, HTTPMessage> requests;
 	
 	public HTTPCapturer(Model model) {
 		this.model = model;
 		this.tcp = new Tcp();  
         this.http = new Http();
+        this.ip4 = new Ip4();
         this.requests = new HashMap<Integer, HTTPMessage>();
 	}
 	
@@ -74,8 +78,8 @@ public class HTTPCapturer extends SwingWorker<Void, HTTPMessage> implements Pcap
 	public void nextPacket(PcapPacket packet, String arg1) {
         if (packet.hasHeader(tcp)) {
         	HTTPMessage associatedRequest = requests.get(tcp.destination());
-        	if (associatedRequest != null) {
-        		associatedRequest.addResponse(packet);
+        	if (associatedRequest != null && packet.hasHeader(ip4)) {
+        		associatedRequest.addResponse(new IpPacket(packet, ip4));
         		publish((HTTPMessage)null);
         	} else if (packet.hasHeader(http) && http.getMessageType() == MessageType.REQUEST) {
         		String host = http.fieldValue(Http.Request.Host);
@@ -108,7 +112,6 @@ public class HTTPCapturer extends SwingWorker<Void, HTTPMessage> implements Pcap
 				model.addPacket(httpMsg);
 			}
 		}
-			
 	}
 
 	public void clear() {

@@ -7,6 +7,8 @@ import java.util.Observable;
 import javax.swing.DefaultListModel;
 
 import org.jnetpcap.PcapIf;
+import org.jnetpcap.nio.JBuffer;
+import org.jnetpcap.packet.Payload;
 import org.jnetpcap.packet.PcapPacket;
 import org.jnetpcap.protocol.tcpip.Http;
 

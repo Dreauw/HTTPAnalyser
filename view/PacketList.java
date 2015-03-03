@@ -18,6 +18,7 @@ import javax.swing.JTextArea;
 import org.jnetpcap.packet.PcapPacket;
 
 import model.HTTPMessage;
+import model.IpPacket;
 import model.Model;
 import model.ModelMessage;
 
@@ -26,10 +27,13 @@ public class PacketList extends JScrollPane implements Observer {
 	
 	private JList list;
 	private JPopupMenu popupMenu;
+	private Model model;
 	private JMenuItem showHTTPReq, showHTTPRes, saveResponse, downloadURL;
 	
 	public PacketList(Model model) {
 		super();
+		
+		this.model = model;
 		model.addObserver(this);
 		
 		generatePopupMenu();
@@ -77,7 +81,7 @@ public class PacketList extends JScrollPane implements Observer {
 			public void actionPerformed(ActionEvent e) {
 				getSelectedHTTPMessage().sortResponses();
 				String p = "";
-				for (PcapPacket packet : getSelectedHTTPMessage().getResponses())
+				for (IpPacket packet : getSelectedHTTPMessage().getResponses())
 					p += packet.toString();
 
 				showText(p);
