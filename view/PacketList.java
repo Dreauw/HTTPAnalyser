@@ -1,6 +1,9 @@
 package view;
 
 import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -30,7 +33,7 @@ public class PacketList extends JScrollPane implements Observer {
 	private JList list;
 	private JPopupMenu popupMenu;
 	private Model model;
-	private JMenuItem showHTTPReq, showHTTPRes, saveResponse, downloadURL;
+	private JMenuItem copyURL, showHTTPReq, showHTTPRes, saveResponse, downloadURL;
 	
 	public PacketList(Model model) {
 		super();
@@ -64,6 +67,8 @@ public class PacketList extends JScrollPane implements Observer {
 	 */
 	private void generatePopupMenu() {
 		popupMenu = new JPopupMenu();
+		popupMenu.add(copyURL = new JMenuItem("Copy URL"));
+		popupMenu.addSeparator();
 		popupMenu.add(showHTTPReq = new JMenuItem("Show request packet..."));
 		popupMenu.add(showHTTPRes = new JMenuItem("Show response packet(s)..."));
 		popupMenu.addSeparator();
@@ -71,6 +76,15 @@ public class PacketList extends JScrollPane implements Observer {
 		popupMenu.add(downloadURL = new JMenuItem("Download the requested URL..."));
 		
 		// Listeners
+		copyURL.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				StringSelection selection = new StringSelection(getSelectedHTTPMessage().getURL());
+			    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+			    clipboard.setContents(selection, selection);
+			}
+		});
+		
 		showHTTPReq.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {

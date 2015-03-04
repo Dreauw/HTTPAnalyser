@@ -44,6 +44,10 @@ public class HTTPMessage {
 		return responses;
 	}
 	
+	public String getURL() {
+		return url;
+	}
+	
 	@Override
 	public String toString() {
 		return " (" + responses.size() + ") " + url;
