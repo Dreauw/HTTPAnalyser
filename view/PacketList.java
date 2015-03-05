@@ -132,6 +132,18 @@ public class PacketList extends JScrollPane implements Observer {
 				}
 			}
 		});
+		
+		downloadURL.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser fileChooser = new JFileChooser();
+				fileChooser.setSelectedFile(new File(getSelectedHTTPMessage().getResourceName()));
+				
+				if (fileChooser.showSaveDialog(PacketList.this) == JFileChooser.APPROVE_OPTION) {
+					model.downloadUsingMsgRequest(getSelectedHTTPMessage(), fileChooser.getSelectedFile());
+				}
+			}
+		});
 	}
 	
 	private void showText(String text) {

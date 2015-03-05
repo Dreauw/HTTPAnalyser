@@ -4,6 +4,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
@@ -14,6 +19,7 @@ import org.jnetpcap.PcapIf;
 import org.jnetpcap.nio.JBuffer;
 import org.jnetpcap.packet.Payload;
 import org.jnetpcap.packet.PcapPacket;
+import org.jnetpcap.packet.structure.JField;
 import org.jnetpcap.protocol.tcpip.Http;
 import org.jnetpcap.protocol.tcpip.Tcp;
 
@@ -157,5 +163,43 @@ public class Model extends Observable {
 		packets.removeElement(message);
 		this.setChanged();
 		this.notifyObservers(new ModelMessage(ModelMessage.TYPE.PACKET_UPDATED));
+	}
+	
+	/**
+	 * Download a file using the request of a message
+	 * @param HTTPMessage The message to use of the download
+	 * @param file File to save the download
+	 */
+	public void downloadUsingMsgRequest(HTTPMessage message, File file) {
+		try {
+			// The protocol is always HTTP because it's an HTTPMessage
+			Http http = new Http();
+			HttpURLConnection connection = (HttpURLConnection)(new URL("http://" + message.getURL())).openConnection();
+			
+			if (!message.getRequest().hasHeader(http)) throw new Exception("Not an HTTP request");
+			
+			// Use the same parameters as the message
+			for (Http.Request reqField : Http.Request.values()) {
+				if (http.hasField(reqField)) {
+					// Strangely, reqField.name() return the field name with "_" instead of "-"
+					String fieldName = reqField.name().replace('_', '-');
+					connection.setRequestProperty(fieldName, http.fieldValue(reqField));
+				}
+			}
+
+			ReadableByteChannel rbc = Channels.newChannel(connection.getInputStream());
+			FileOutputStream fos = new FileOutputStream(file);
+			
+			// Do the download
+			long pos = 0, size = 0;
+			while ((size = fos.getChannel().transferFrom(rbc, pos, 57344)) > 0) {
+				pos += size;
+			}
+			
+			fos.close();
+		} catch (Exception e) {
+			this.setChanged();
+			this.notifyObservers(new ModelMessage(ModelMessage.TYPE.ERROR, e.getMessage()));
+		}
 	}
 }
