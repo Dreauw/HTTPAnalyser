@@ -113,29 +113,28 @@ public class Model extends Observable {
 	 * @param file The file to write the content
 	 * @param message The HTTP message to save
 	 */
-	public void saveHTTPResponseContent(File file, HTTPMessage message) {
-		// First, we sort all the responses in the right order (based on the IP4 header's id)
-		message.sortResponses();
-		
+	public void saveHTTPResponseContent(File file, HTTPMessage message) {		
 		Http http = new Http();
 		Tcp tcp = new Tcp();
 		
 		FileOutputStream out = null;
 		try {
 			out = new FileOutputStream(file);
-			
 			// Loop trought all the responses
-			int size =  message.getResponses().size();
-			for (int i = 0; i < size; ++i) {
-				PcapPacket packet = message.getResponses().get(i).getPacket();
+			ResponsePacket response = message.getResponse();
+			
+			while (response != null) {
+				PcapPacket packet = response.getPacket();
 				// Write the payload of the fragment (if there's one)
 				if (packet.hasHeader(http)) {
 					// Remove the http header
 					out.write(http.getPayload());
 				} else if (packet.hasHeader(tcp)) {
 					// No http dg, so the payload is in the tcp dg
-					out.write(tcp.getPayload());
+					byte[] payload = tcp.getPayload();
+					out.write(payload);
 				};
+				response = response.getNext();
 			}
 		} catch (Exception e) {
 			this.setChanged();

@@ -10,38 +10,58 @@ import org.jnetpcap.packet.PcapPacket;
 public class HTTPMessage {
 	private String url;
 	private PcapPacket request;
-	private List<IpPacket> responses;
+	private ResponsePacket responseHead;
+	private ResponsePacket responseTail;
+	private int nbResponses;
 	
 	public HTTPMessage(String url, PcapPacket request) {
 		this.url = url;
 		this.request = request;
-		this.responses = new ArrayList<IpPacket>();
+		this.nbResponses = 0;
 	}
 	
 	public PcapPacket getRequest() {
 		return request;
 	}
-	
-	public void addResponse(IpPacket packet) {
-		responses.add(packet);
-	}
-	
-	/**
-	 * Sort the fragmented packet representing the response in the right order
-	 */
-	public void sortResponses() {
-		Collections.sort(responses, new Comparator<IpPacket>() {
 
-			@Override
-			public int compare(IpPacket p1, IpPacket p2) {
-				return p1.getId() - p2.getId();
+	public void addResponse(ResponsePacket packet) {
+		if (responseTail == null) {
+			responseTail = responseHead = packet;
+		} else {
+			ResponsePacket predecessor = responseTail;
+			// Insert the response in the right order (based on the id)
+			while (predecessor != null && predecessor.getId() > packet.getId()) {
+				predecessor = predecessor.getPrevious();
 			}
 			
-		});
+			// Check that the packet is not already stored
+			if (predecessor != null && predecessor.getId() == packet.getId()) {
+				// The packet has been re-sent probably to fix an error, so we just replace the old one
+				if (predecessor.getPrevious() != null) predecessor.getPrevious().setNext(packet);
+				if (predecessor.getNext() != null) predecessor.getNext().setPrevious(packet);
+				packet.setPrevious(predecessor.getPrevious());
+				packet.setNext(predecessor.getNext());
+				return;
+			}
+			
+			if (predecessor == null) {
+				packet.setNext(responseHead);
+				responseHead.setPrevious(packet);
+				responseHead = packet;
+			} else {
+				if (predecessor.getNext() == null) responseTail = packet;
+				
+				packet.setNext(predecessor.getNext());
+				if (packet.getNext() != null) packet.getNext().setPrevious(packet);
+				packet.setPrevious(predecessor);
+				predecessor.setNext(packet);
+			}
+		}
+		++nbResponses;
 	}
 	
-	public List<IpPacket> getResponses() {
-		return responses;
+	public ResponsePacket getResponse() {
+		return responseHead;
 	}
 	
 	public String getURL() {
@@ -50,7 +70,7 @@ public class HTTPMessage {
 	
 	@Override
 	public String toString() {
-		return " (" + responses.size() + ") " + url;
+		return " (" + nbResponses + ") " + url;
 	}
 	
 	/**

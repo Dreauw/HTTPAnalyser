@@ -23,7 +23,7 @@ import javax.swing.JTextArea;
 import org.jnetpcap.packet.PcapPacket;
 
 import model.HTTPMessage;
-import model.IpPacket;
+import model.ResponsePacket;
 import model.Model;
 import model.ModelMessage;
 
@@ -95,11 +95,15 @@ public class PacketList extends JScrollPane implements Observer {
 		showHTTPRes.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				getSelectedHTTPMessage().sortResponses();
 				String p = "";
-				for (IpPacket packet : getSelectedHTTPMessage().getResponses())
+				ResponsePacket response = getSelectedHTTPMessage().getResponse();
+				
+				while (response != null) {
+					PcapPacket packet = response.getPacket();
 					p += packet.toString();
-
+					response = response.getNext();
+				}
+				
 				showText(p);
 			}
 		});
@@ -143,7 +147,7 @@ public class PacketList extends JScrollPane implements Observer {
 			list.setSelectedIndex(index);
 			
 			// If there's no response, disable items that use them
-			if (getSelectedHTTPMessage().getResponses().size() <= 0) {
+			if (getSelectedHTTPMessage().getResponse() == null) {
 				showHTTPRes.setEnabled(false);
 				saveResponse.setEnabled(false);
 			}

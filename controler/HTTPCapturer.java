@@ -16,7 +16,7 @@ import org.jnetpcap.protocol.tcpip.Http;
 import org.jnetpcap.protocol.tcpip.Tcp;
 
 import model.HTTPMessage;
-import model.IpPacket;
+import model.ResponsePacket;
 import model.Model;
 
 public class HTTPCapturer extends SwingWorker<Void, HTTPMessage> implements PcapPacketHandler<String> {
@@ -24,14 +24,12 @@ public class HTTPCapturer extends SwingWorker<Void, HTTPMessage> implements Pcap
 	private Tcp tcp;
 	private Http http;
 	private Pcap pcap;
-	private Ip4 ip4;
 	private HashMap<Integer, HTTPMessage> requests;
 	
 	public HTTPCapturer(Model model) {
 		this.model = model;
 		this.tcp = new Tcp();  
         this.http = new Http();
-        this.ip4 = new Ip4();
         this.requests = new HashMap<Integer, HTTPMessage>();
 	}
 	
@@ -78,8 +76,8 @@ public class HTTPCapturer extends SwingWorker<Void, HTTPMessage> implements Pcap
 	public void nextPacket(PcapPacket packet, String arg1) {
         if (packet.hasHeader(tcp)) {
         	HTTPMessage associatedRequest = requests.get(tcp.destination());
-        	if (associatedRequest != null && packet.hasHeader(ip4)) {
-        		associatedRequest.addResponse(new IpPacket(packet, ip4));
+        	if (associatedRequest != null) {
+        		associatedRequest.addResponse(new ResponsePacket(packet, tcp));
         		publish((HTTPMessage)null);
         	} else if (packet.hasHeader(http) && http.getMessageType() == MessageType.REQUEST) {
         		String host = http.fieldValue(Http.Request.Host);
