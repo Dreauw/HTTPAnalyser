@@ -147,11 +147,9 @@ public class PacketList extends JScrollPane implements Observer {
 			list.setSelectedIndex(index);
 			
 			// If there's no response, disable items that use them
-			if (getSelectedHTTPMessage().getResponse() == null) {
-				showHTTPRes.setEnabled(false);
-				saveResponse.setEnabled(false);
-			}
-			
+			showHTTPRes.setEnabled(getSelectedHTTPMessage().getResponse() != null);
+			saveResponse.setEnabled(getSelectedHTTPMessage().getResponse() != null);
+				
 			// Show the popup
 			popupMenu.show(list, e.getX(), e.getY());
 		}
