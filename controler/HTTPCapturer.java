@@ -1,5 +1,6 @@
 package controler;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -110,6 +111,18 @@ public class HTTPCapturer extends SwingWorker<Void, HTTPMessage> implements Pcap
 				model.addPacket(httpMsg);
 			}
 		}
+	}
+	
+	/**
+	 * Remove a captured packet and his responses
+	 * @param message The message to remove
+	 */
+	public void removePacket(HTTPMessage message) {
+		// Remove all the references of the message
+		requests.values().removeAll(Collections.singleton(message));
+		
+		// Pass the information to the model
+		model.removePacket(message);
 	}
 
 	public void clear() {

@@ -43,7 +43,7 @@ public class MainWindow extends JFrame implements Observer {
 		panel.setPreferredSize(new Dimension(WIDTH, HEIGHT));
 		
 		addCaptureButtons(panel);
-		panel.add(new PacketList(model), BorderLayout.CENTER);
+		panel.add(new PacketList(model, httpCapturer), BorderLayout.CENTER);
 		
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		this.setContentPane(panel);

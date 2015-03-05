@@ -22,6 +22,8 @@ import javax.swing.JTextArea;
 
 import org.jnetpcap.packet.PcapPacket;
 
+import controler.HTTPCapturer;
+
 import model.HTTPMessage;
 import model.ResponsePacket;
 import model.Model;
@@ -33,13 +35,16 @@ public class PacketList extends JScrollPane implements Observer {
 	private JList list;
 	private JPopupMenu popupMenu;
 	private Model model;
-	private JMenuItem copyURL, showHTTPReq, showHTTPRes, saveResponse, downloadURL;
+	private HTTPCapturer httpCapturer;
+	private JMenuItem copyURL, removePacket, showHTTPReq, showHTTPRes, saveResponse, downloadURL;
 	
-	public PacketList(Model model) {
+	public PacketList(Model model, HTTPCapturer httpCapturer) {
 		super();
 		
 		this.model = model;
 		model.addObserver(this);
+		
+		this.httpCapturer = httpCapturer;
 		
 		generatePopupMenu();
 		
@@ -68,6 +73,7 @@ public class PacketList extends JScrollPane implements Observer {
 	private void generatePopupMenu() {
 		popupMenu = new JPopupMenu();
 		popupMenu.add(copyURL = new JMenuItem("Copy URL"));
+		popupMenu.add(removePacket = new JMenuItem("Remove"));
 		popupMenu.addSeparator();
 		popupMenu.add(showHTTPReq = new JMenuItem("Show request packet..."));
 		popupMenu.add(showHTTPRes = new JMenuItem("Show response packet(s)..."));
@@ -82,6 +88,13 @@ public class PacketList extends JScrollPane implements Observer {
 				StringSelection selection = new StringSelection(getSelectedHTTPMessage().getURL());
 			    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 			    clipboard.setContents(selection, selection);
+			}
+		});
+		
+		removePacket.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				httpCapturer.removePacket(getSelectedHTTPMessage());
 			}
 		});
 		

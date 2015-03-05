@@ -149,4 +149,13 @@ public class Model extends Observable {
 			}
 		}
 	}
+	/**
+	 * Remove a packet from the list
+	 * @param HTTPMessage
+	 */
+	public void removePacket(HTTPMessage message) {
+		packets.removeElement(message);
+		this.setChanged();
+		this.notifyObservers(new ModelMessage(ModelMessage.TYPE.PACKET_UPDATED));
+	}
 }
