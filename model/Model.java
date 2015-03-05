@@ -170,36 +170,55 @@ public class Model extends Observable {
 	 * @param HTTPMessage The message to use of the download
 	 * @param file File to save the download
 	 */
-	public void downloadUsingMsgRequest(HTTPMessage message, File file) {
-		try {
-			// The protocol is always HTTP because it's an HTTPMessage
-			Http http = new Http();
-			HttpURLConnection connection = (HttpURLConnection)(new URL("http://" + message.getURL())).openConnection();
-			
-			if (!message.getRequest().hasHeader(http)) throw new Exception("Not an HTTP request");
-			
-			// Use the same parameters as the message
-			for (Http.Request reqField : Http.Request.values()) {
-				if (http.hasField(reqField)) {
-					// Strangely, reqField.name() return the field name with "_" instead of "-"
-					String fieldName = reqField.name().replace('_', '-');
-					connection.setRequestProperty(fieldName, http.fieldValue(reqField));
+	public void downloadUsingMsgRequest(final HTTPMessage message, final File file) {
+		new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					// The protocol is always HTTP because it's an HTTPMessage
+					Http http = new Http();
+					HttpURLConnection connection = (HttpURLConnection)(new URL("http://" + message.getURL())).openConnection();
+					
+					if (!message.getRequest().hasHeader(http)) throw new Exception("Not an HTTP request");
+					
+					// Use the same parameters as the message
+					for (Http.Request reqField : Http.Request.values()) {
+						if (http.hasField(reqField)) {
+							// Strangely, reqField.name() return the field name with "_" instead of "-"
+							String fieldName = reqField.name().replace('_', '-');
+							connection.setRequestProperty(fieldName, http.fieldValue(reqField));
+						}
+					}
+					
+					// Inform the view that there's a new download
+					Model.this.setChanged();
+					Model.this.notifyObservers(new ModelMessage(ModelMessage.TYPE.ADD_DOWNLOAD, file.getName()));
+
+					ReadableByteChannel rbc = Channels.newChannel(connection.getInputStream());
+					FileOutputStream fos = new FileOutputStream(file);
+					
+					// Do the download
+					long lastTime = System.currentTimeMillis();
+					long pos = 0, size = 0;
+					while ((size = fos.getChannel().transferFrom(rbc, pos, 57344)) > 0) {
+						pos += size;
+						float elapsed = (System.currentTimeMillis() - lastTime) / 1000f;
+						String rate = Math.round((size/1024f) / elapsed) + "ko/s";
+						int progress = (int) ((pos * 1f / connection.getContentLength() * 1f) * 1000);
+						// Inform the view of the download progress
+						Model.this.setChanged();
+						Model.this.notifyObservers(new ModelMessage(ModelMessage.TYPE.UPDATE_DOWNLOAD, new Object[]{file.getName(), rate, progress}));
+						lastTime = System.currentTimeMillis();
+					}
+					
+					fos.close();
+				} catch (Exception e) {
+					Model.this.setChanged();
+					Model.this.notifyObservers(new ModelMessage(ModelMessage.TYPE.ERROR, e.getMessage()));
 				}
 			}
-
-			ReadableByteChannel rbc = Channels.newChannel(connection.getInputStream());
-			FileOutputStream fos = new FileOutputStream(file);
 			
-			// Do the download
-			long pos = 0, size = 0;
-			while ((size = fos.getChannel().transferFrom(rbc, pos, 57344)) > 0) {
-				pos += size;
-			}
-			
-			fos.close();
-		} catch (Exception e) {
-			this.setChanged();
-			this.notifyObservers(new ModelMessage(ModelMessage.TYPE.ERROR, e.getMessage()));
-		}
+		}).start();
 	}
 }

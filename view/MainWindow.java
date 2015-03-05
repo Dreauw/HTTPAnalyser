@@ -29,6 +29,7 @@ public class MainWindow extends JFrame implements Observer {
 	private Model model;
 	
 	private HTTPCapturer httpCapturer;
+	private DownloadManager downloadManager;
 	private JButton btnCapture, btnClear;
 	
 	public MainWindow() {
@@ -36,6 +37,8 @@ public class MainWindow extends JFrame implements Observer {
 		
 		model = new Model();
 		model.addObserver(this);
+		
+		downloadManager = new DownloadManager(model);
 		
 		httpCapturer = new HTTPCapturer(model);
 		
@@ -100,6 +103,8 @@ public class MainWindow extends JFrame implements Observer {
 		} else if (msg.getType() == ModelMessage.TYPE.CAPTURE_STATE_CHANGED) {
 			// Update the state of the button to control the capture
 			btnCapture.setText(model.isInCapture() ? "Stop" : "Start");
+		} else if (msg.getType() == ModelMessage.TYPE.ADD_DOWNLOAD) {
+			downloadManager.setVisible(true);
 		}
 	}
 	
