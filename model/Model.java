@@ -41,7 +41,6 @@ public class Model extends Observable {
 			this.setChanged();
 			this.notifyObservers(new ModelMessage(ModelMessage.TYPE.ERROR, e.getMessage()));
 		}
-		networkDevice.setSelectedDevice(2);
 	}
 	
 	/**
@@ -163,6 +162,14 @@ public class Model extends Observable {
 		packets.removeElement(message);
 		this.setChanged();
 		this.notifyObservers(new ModelMessage(ModelMessage.TYPE.PACKET_UPDATED));
+	}
+	
+	/**
+	 * Change the network device for the capture
+	 * @param index Index of the new network device
+	 */
+	public void selectNetworkDevice(int index) {
+		networkDevice.setSelectedDevice(index);
 	}
 	
 	/**

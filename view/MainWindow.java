@@ -8,6 +8,7 @@ import java.util.Observable;
 import java.util.Observer;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -31,6 +32,7 @@ public class MainWindow extends JFrame implements Observer {
 	private HTTPCapturer httpCapturer;
 	private DownloadManager downloadManager;
 	private JButton btnCapture, btnClear;
+	private JComboBox comboBoxNetworkDevice;
 	
 	public MainWindow() {
 		super("HTTPAnalyser");
@@ -60,8 +62,22 @@ public class MainWindow extends JFrame implements Observer {
 	 * @param panel Panel to add the buttons on
 	 */
 	private void addCaptureButtons(JPanel panel) {
+		comboBoxNetworkDevice = new JComboBox(model.getDevicesName().toArray());
 		btnCapture = new JButton("Start");
 		btnClear = new JButton("Clear");
+		
+		comboBoxNetworkDevice.setPreferredSize(new Dimension(200, 26));
+		
+		comboBoxNetworkDevice.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				model.selectNetworkDevice(comboBoxNetworkDevice.getSelectedIndex());
+				if (model.isInCapture()) {
+					JOptionPane.showMessageDialog(MainWindow.this, "You need to re-start the capture to use this device");
+				}
+			}
+		});
 		
 		btnCapture.addActionListener(new ActionListener() {
 			
@@ -89,6 +105,7 @@ public class MainWindow extends JFrame implements Observer {
 		});
 		
 		JPanel subPanel = new JPanel();
+		subPanel.add(comboBoxNetworkDevice);
 		subPanel.add(btnCapture);
 		subPanel.add(btnClear);
 		panel.add(subPanel, BorderLayout.NORTH);

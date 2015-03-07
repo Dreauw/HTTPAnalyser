@@ -26,12 +26,14 @@ public class HTTPCapturer extends SwingWorker<Void, HTTPMessage> implements Pcap
 	private Http http;
 	private Pcap pcap;
 	private HashMap<Integer, HTTPMessage> requests;
+	private boolean stopped;
 	
 	public HTTPCapturer(Model model) {
 		this.model = model;
 		this.tcp = new Tcp();  
         this.http = new Http();
         this.requests = new HashMap<Integer, HTTPMessage>();
+        this.stopped = false;
 	}
 	
 	/**
@@ -67,15 +69,17 @@ public class HTTPCapturer extends SwingWorker<Void, HTTPMessage> implements Pcap
 	 * Stop the capture
 	 */
 	public void stop() {
-		if (pcap != null)
+		if (pcap != null) {
+			stopped = true;
+			model.setInCapture(false);
 			pcap.breakloop();
-		model.setInCapture(false);
+		}
 	}
 
 
 	@Override
 	public void nextPacket(PcapPacket packet, String arg1) {
-        if (packet.hasHeader(tcp)) {
+        if (!stopped && packet.hasHeader(tcp)) {
         	HTTPMessage associatedRequest = requests.get(tcp.destination());
         	if (associatedRequest != null) {
         		associatedRequest.addResponse(new ResponsePacket(packet, tcp));
@@ -96,9 +100,12 @@ public class HTTPCapturer extends SwingWorker<Void, HTTPMessage> implements Pcap
 	@Override
 	protected Void doInBackground() throws Exception {
 		pcap.loop(Pcap.LOOP_INFINITE, HTTPCapturer.this, "");
-        pcap.close();
-        model.setInCapture(false);
-        pcap = null;
+		if (!stopped) {
+	        model.setInCapture(false);
+	        stopped = true;
+		}
+		pcap.close();
+		pcap = null;
 		return null;
 	}
 	
